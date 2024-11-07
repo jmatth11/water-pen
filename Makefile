@@ -4,8 +4,7 @@ BAUD=115200
 # the programmer to flash the device
 PROGRAMMER=usbtiny
 # the clocks frequency
-# 1.6MHz
-CLOCK_FREQ=16000000UL
+CLOCK_FREQ=1000000UL
 # memory operation to perform on target (flash operation to write the hex file to)
 MEM_OP=flash:w:main.hex
 MCU=attiny85
@@ -14,7 +13,7 @@ MCU=attiny85
 # TARGET_PLATFORM=m328p
 # for attiny85
 TARGET_PLATFORM=t85
-USB_PORT=usb:001:003
+USB_PORT=usb:001:004
 
 # Remove section when generating file
 SECTION=.eeprom
