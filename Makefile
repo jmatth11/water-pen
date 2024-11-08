@@ -13,7 +13,7 @@ MCU=attiny85
 # TARGET_PLATFORM=m328p
 # for attiny85
 TARGET_PLATFORM=t85
-USB_PORT=usb:001:004
+USB_PORT=usb:001:007
 
 # Remove section when generating file
 SECTION=.eeprom
