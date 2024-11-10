@@ -1,4 +1,6 @@
 *.o
 *.hex
 main
+bin/
+obj/
 
