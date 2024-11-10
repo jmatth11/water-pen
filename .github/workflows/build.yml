@@ -14,6 +14,6 @@ jobs:
         run: ./install_deps.sh
 
       - name: Build Project
-        run: make
+        run: make build
 
 
