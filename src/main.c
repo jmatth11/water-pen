@@ -1,3 +1,4 @@
+#include "avr/builtins.h"
 #include "avr/common.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -8,6 +9,11 @@
 ISR(PCINT0_vect)
 {
   PORTB ^= _BV(PB3);
+}
+
+void deep_sleep() {
+  MCUCR |= _BV(SE);
+  __builtin_avr_sleep();
 }
 
 /**

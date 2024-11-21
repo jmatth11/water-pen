@@ -1,5 +1,6 @@
 CC=avr-gcc
 SOURCES=$(shell find . -name '*.c')
+INCLUDES=-I./src/
 OBJ=obj
 BIN=bin
 OBJECTS=$(addprefix $(OBJ)/,$(SOURCES:%.c=%.o))
@@ -35,7 +36,7 @@ build: $(OBJECTS)
 
 $(OBJ)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) -c -o $@ $< $(CFLAGS) -DF_CPU=$(CLOCK_FREQ) -mmcu=$(MCU)
+	$(CC) -c -o $@ $< $(CFLAGS) $(INCLUDES) -DF_CPU=$(CLOCK_FREQ) -mmcu=$(MCU)
 
 .PHONY: upload
 upload: build

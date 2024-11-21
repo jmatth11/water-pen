@@ -1,4 +1,4 @@
--I.
+-I./src/
 -I/usr/lib/avr/include/
 -Wall
 -std=c11
