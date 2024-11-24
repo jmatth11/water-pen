@@ -1,6 +1,6 @@
 #include <avr/io.h>
 
-#include "store.h"
+#include "eeprom.h"
 
 /**
  * Write a byte of data to the EEPROM.

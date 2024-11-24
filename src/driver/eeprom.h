@@ -1,5 +1,5 @@
-#ifndef JM_WATER_PEN_STORE_H
-#define JM_WATER_PEN_STORE_H
+#ifndef WATER_PEN_EEPROM_H
+#define WATER_PEN_EEPROM_H
 
 #include <inttypes.h>
 

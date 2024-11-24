@@ -1,5 +1,5 @@
-#ifndef JM_WATER_PEN_STATE_H
-#define JM_WATER_PEN_STATE_H
+#ifndef WATER_PEN_STATE_TYPES_H
+#define WATER_PEN_STATE_TYPES_H
 
 enum mode_t {
   WP_SLEEP,

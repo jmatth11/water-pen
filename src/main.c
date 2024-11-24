@@ -41,12 +41,12 @@ void setup_global_interrupt_flags() {
 void setup_button_interrupt() {
   // enable interrupt handler for PCINT1 (or PB1)
   PCMSK |= _BV(PCINT1);
-  // set pin 1 as input, with DDB1 to 0 and PORTB1 to 1
-  DDRB &= ~_BV(DDB1);
-  PORTB |= _BV(PB1);
   // make sure to enable pullup resistor by setting
   // the pullup-disable flag to off
   MCUCR &= ~_BV(PUD);
+  // set pin 1 as input, with DDB1 to 0 and PORTB1 to 1
+  DDRB &= ~_BV(DDB1);
+  PORTB |= _BV(PB1);
 }
 
 int main (void) {

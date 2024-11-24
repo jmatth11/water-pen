@@ -4,8 +4,25 @@
 #include <avr/io.h>
 #include <stdbool.h>
 
-#ifndef i2c_bus
-  #define i2c_bus DDRB
+#define I2C_ACK 0x00
+#define I2C_NACK 0xFF
+
+// These numbers are from a calculation chart
+// from I2C spec -- NXP I2C Timing Specification
+#ifdef I2C_FAST_MODE // 400kHz fast
+  // low period of SCL
+  #define T2_TWI 2 // >1.3microseconds
+  // high period of SCL
+  #define T4_TWI 1 // >0.6microseconds
+#else // 100kHz standard
+  // low period of SCL
+  #define T2_TWI 5 // >4.7microseconds
+  // high period of SCL
+  #define T4_TWI 4 // >4.0microseconds
+#endif
+
+#ifndef i2c_ddr
+  #define i2c_ddr DDRB
 #endif
 #ifndef i2c_port
   #define i2c_port PORTB
@@ -31,11 +48,16 @@
 
 /**
  * Initialize I2C registers and ports.
+ *
+ * @param[in] internal_pullups Flag for using internal pullup resistors,
+ *  False for external.
  */
-void i2c_init();
+void i2c_init(bool internal_pullups);
 
 /**
  * Send start command.
+ *
+ * @return True if the start successfully initiated, False otherwise.
  */
 bool i2c_start();
 
@@ -46,6 +68,7 @@ void i2c_stop();
 
 /**
  * Write the given byte.
+ *
  * @param[in] data The byte to send.
  * @return The N/ACK byte.
  */
