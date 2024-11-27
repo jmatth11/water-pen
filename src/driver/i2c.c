@@ -56,7 +56,7 @@ bool i2c_start() {
   // ensure both lines are high
   i2c_port |= (_BV(i2c_sda) | _BV(i2c_scl));
   // wait till clock pin is high
-  while (!(i2c_pin & _BV(i2c_scl)));
+  while (!(i2c_port & _BV(i2c_scl)));
   _delay_us(T2_TWI);
 
   // pull data line low
@@ -104,7 +104,7 @@ unsigned char transfer(unsigned char mask) {
     // wait short
     _delay_us(T4_TWI);
     // toggle clock again
-    i2c_control = _BV(USITC);
+    i2c_control |= _BV(USITC);
 
   } while (!(i2c_status & _BV(USIOIF)));
   _delay_us(T2_TWI);
