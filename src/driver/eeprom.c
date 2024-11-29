@@ -8,7 +8,7 @@
  * @param[in] addr The address to write to.
  * @param[in] data The byte to write.
  */
-void eeprom_write(uint8_t addr, uint8_t data) {
+void eeprom_write(uint16_t addr, uint8_t data) {
 
   /* Wait for completion of previous write */
   while(EECR & _BV(EEPE));
@@ -30,7 +30,7 @@ void eeprom_write(uint8_t addr, uint8_t data) {
  * @param[in] addr The address to read from.
  * @return The byte of data.
  */
-uint8_t eeprom_read(uint8_t addr) {
+uint8_t eeprom_read(uint16_t addr) {
 
   /* Wait for completion of previous write */
   while(EECR & (1<<EEPE));

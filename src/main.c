@@ -7,10 +7,13 @@
 #include <util/delay.h>
 #include <string.h>
 
+#include "avr/wdt.h"
 #include "components/soil_sensor.h"
 #include "driver/adc.h"
 #include "driver/i2c.h"
+#include "driver/slp.h"
 #include "logic/calibration.h"
+#include "logic/data.h"
 #include "types/state_types.h"
 #include "logic/setup.h"
 #include "logic/state.h"
@@ -24,7 +27,8 @@ static void error_loop() {
 
   }
 }
-static void print(char* str, uint32_t len) {
+static void print(char* str) {
+  const uint32_t len = strlen(str);
   if (!i2c_start()) {
     error_loop();
   }
@@ -37,7 +41,7 @@ static void print(char* str, uint32_t len) {
 static void print_int(uint16_t val) {
   char buf[5] = {0,0,0,0,0};
   sprintf(buf, "%d", val);
-  print(buf, strlen(buf));
+  print(buf);
 }
 
 
@@ -48,6 +52,7 @@ struct state control_state;
 int main (void) {
   // disable interrupts while we configure our interrupts
   cli();
+  enable_deep_sleep();
   setup_global_interrupt_flags();
   setup_button_interrupt(PB1);
   // enable interrupts again.
@@ -55,17 +60,32 @@ int main (void) {
 
   setup_led(LED_PIN);
   adc_init();
-  // TODO check if we have calibration info stored in the eeprom
+
+  // read the eeprom for calibration data
+  if (!data_read_calibration_info(&control_state.calibration_info)) {
+    // if the device hasn't been calibrated yet, put it in an error mode
+    // until the user calibrates
+    control_state.mode = WP_TRIGGER;
+  }
+
   i2c_init(true);
+
   while(1) {
     switch (control_state.mode) {
       case WP_CALIBRATE: {
         control_state.calibration_info = calibrate_soil_sensor(LED_PIN);
-        // TODO save result in EEPROM
+
+        print("cal");
+        print_int(control_state.calibration_info.air_threshold);
+        print_int(control_state.calibration_info.water_threshold);
+
+        data_save_calibration_info(&control_state.calibration_info);
+        print("saved");
         control_state.mode = WP_SLEEP;
         break;
       }
       case WP_READ: {
+        print("read");
         uint16_t result = soil_sensor_read();
         print_int(result);
         uint8_t percentage = percentage_from_value(
@@ -78,6 +98,7 @@ int main (void) {
         break;
       }
       case WP_TRIGGER: {
+        print("trigger");
         enable_trigger_state(&control_state, LED_PIN);
         // go to sleep -- the LED should stay on during power down
         control_state.mode = WP_SLEEP;
@@ -86,7 +107,9 @@ int main (void) {
         break;
       }
       case WP_SLEEP: {
-        // TODO use sleep method here
+        print("sleep");
+        // sleep for longest time -- 8sec
+        wd_sleep(WDTO_8S);
         break;
       }
     }
