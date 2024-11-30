@@ -16,6 +16,7 @@ void eeprom_write(uint16_t addr, uint8_t data) {
   /* Set Programming mode */
   EECR = (0<<EEPM1)|(0<<EEPM0);
   /* Set up address and data registers */
+  // address can't be bigger than 511
   EEAR = addr;
   EEDR = data;
   /* Write logical one to EEMPE */
@@ -36,6 +37,7 @@ uint8_t eeprom_read(uint16_t addr) {
   while(EECR & (1<<EEPE));
 
   /* Set up address register */
+  // address can't be bigger than 511
   EEAR = addr;
   /* Start eeprom read by writing EERE */
   EECR |= (1<<EERE);

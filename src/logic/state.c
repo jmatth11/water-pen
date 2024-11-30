@@ -1,7 +1,6 @@
 #include "state.h"
 #include <avr/io.h>
 
-
 void enable_trigger_state(struct state* control_state, uint8_t pin) {
   PORTB |= _BV(pin);
   control_state->error_triggered = true;

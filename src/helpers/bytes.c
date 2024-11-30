@@ -1,7 +1,6 @@
 #include "bytes.h"
 #include <stdint.h>
 
-
 void write_16_to_8(uint16_t value, uint8_t buf[2]) {
   buf[0] = value;
   buf[1] = (value >> 8);

@@ -73,6 +73,9 @@ int main (void) {
   while(1) {
     switch (control_state.mode) {
       case WP_CALIBRATE: {
+        // wait at least a second in case we are transitioning from error mode
+        // to tell the difference between "error" LED and "calibration" LED
+        _delay_ms(1000);
         control_state.calibration_info = calibrate_soil_sensor(LED_PIN);
 
         print("cal");
@@ -123,9 +126,9 @@ int main (void) {
  */
 ISR(PCINT0_vect)
 {
+  control_state.mode = WP_CALIBRATE;
   // turn off LED if it was on
   disable_trigger_state(&control_state, LED_PIN);
-  control_state.mode = WP_CALIBRATE;
   // set wakeup count to the max so it reads the next time we wake.
   control_state.wakeup_count = WAKEUP_LIMIT;
 }
