@@ -26,10 +26,10 @@ void setup_global_interrupt_flags() {
 void setup_button_interrupt(uint8_t pin) {
   // enable interrupt handler for PCINT1 (or PB1)
   PCMSK |= _BV(pin);
-  // make sure to enable pullup resistor by setting
-  // the pullup-disable flag to off
-  MCUCR &= ~_BV(PUD);
-  // set pin 1 as input, with DDB1 to 0 and PORTB1 to 1
+  // set pin interrupt to trigger on rising edge
+  MCUCR |= (
+    _BV(ISC00) | _BV(ISC01)
+  );
+  // set pin 1 as input, with DDB1 to 0
   DDRB &= ~_BV(pin);
-  PORTB |= _BV(pin);
 }
