@@ -4,6 +4,9 @@
 #include <avr/io.h>
 #include <stdint.h>
 
+/**
+ * Enumeration of ADC input channels.
+ */
 enum adc_input_channel {
   // ADC Single Input options
   /* PB5 */

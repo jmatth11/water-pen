@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <avr/io.h>
 
-#ifndef ERROR_PIN
-#define ERROR_PIN PB3
+#ifndef PRINT_ERROR_PIN
+#define PRINT_ERROR_PIN PB3
 #endif
 
 /**

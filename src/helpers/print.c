@@ -6,7 +6,7 @@
 
 // DEBUG FUNCTIONS
 static void error_loop() {
-  PORTB |= _BV(PB3);
+  PORTB |= _BV(PRINT_ERROR_PIN);
   while(1) {
 
   }

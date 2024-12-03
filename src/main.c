@@ -22,9 +22,37 @@
 #include "helpers/print.h"
 #endif
 
-#define ERROR_LED PB3
-// right now it is the same as error, once using rgb led it will change
-#define CAL_LED PB3
+/**
+ * This is a simple program for the ATtiny85 microcontroller to monitor
+ * potted plants. The form factor is meant to be small like a pen.
+ *
+ * The functionality includes reading the soil moisture once every hour and
+ * displaying an error LED if the moisture is lower then the threshold that is
+ * set by the potentiometer.
+ * However, before use, this device needs to be calibrated by pressing its
+ * button. Position the soil sensor in the dry air, the calibration LED will
+ * display for 3 seconds then it will take an average of the air. The
+ * calibration light will display again for 3 seconds, move the soil sensor to
+ * a cup of water. Once the calibration LED is off it will take the average of
+ * the water data. The calibration LED will do a quick flash to let you know
+ * it is done.
+ *
+ * Pins in use:
+ * - PB0 -- Error LED
+ * - PB1 -- Calibration LED
+ * - PB2 -- Button
+ * - PB3 -- Potentiometer
+ * - PB4 -- Soil Sensor
+ *
+ */
+
+// pins
+#define ERROR_LED PB0
+#define CAL_LED PB1
+#define BUTTON PB2
+#define POTENTIOMETER ADC_SE3
+#define SOIL_SENSOR ADC_SE2
+
 // flags for custom interrupt mask
 /* To signal an interrupt for calibration */
 #define I_CAL 0
@@ -39,9 +67,14 @@
 static volatile uint8_t interrupt_mask = 0;
 
 
-// globals
+// global state
 static struct state control_state;
 
+/**
+ * Handle interrupt mask values atomically.
+ *
+ * @param[in] state The control state.
+ */
 static void handle_interrupt_values(struct state* state) {
 #ifdef DEBUG_MODE
   print("handler");
@@ -71,19 +104,17 @@ static void handle_interrupt_values(struct state* state) {
 #endif
 }
 
-
 int main (void) {
   // disable interrupts while we configure our interrupts
   cli();
   enable_deep_sleep();
   setup_global_interrupt_flags();
-  setup_button_interrupt(PB1);
+  setup_button_interrupt(BUTTON);
   // enable interrupts again.
   sei();
 
   setup_led(ERROR_LED);
-  // TODO uncomment when using rgb led
-  //setup_led(CAL_LED);
+  setup_led(CAL_LED);
   adc_init();
 
   // start off with at least one sleep
@@ -114,7 +145,7 @@ int main (void) {
         // wait at least a second in case we are transitioning from error mode
         // to tell the difference between "error" LED and "calibration" LED
         _delay_ms(1000);
-        control_state.calibration_info = calibrate_soil_sensor(CAL_LED);
+        control_state.calibration_info = calibrate_soil_sensor(CAL_LED, SOIL_SENSOR);
         data_save_calibration_info(&control_state.calibration_info);
 #ifdef DEBUG_MODE
         print_int(control_state.calibration_info.air_threshold);
@@ -138,10 +169,10 @@ int main (void) {
           control_state.mode = WP_TRIGGER;
           break;
         }
-        uint16_t result = soil_sensor_read();
+        uint16_t result = soil_sensor_read(SOIL_SENSOR);
         uint8_t percentage = percentage_from_value(
           result, &control_state.calibration_info);
-        uint16_t threshold = potentiometer_sensor_read();
+        uint16_t threshold = potentiometer_sensor_read(POTENTIOMETER);
         control_state.error_triggered = percentage <= threshold;
         if (control_state.error_triggered) {
           control_state.mode = WP_TRIGGER;

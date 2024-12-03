@@ -11,6 +11,9 @@
  */
 #define WAKEUP_LIMIT 450
 
+/**
+ * The control state modes of the device.
+ */
 enum mode_t {
   // sleep mode
   WP_SLEEP,
@@ -22,6 +25,9 @@ enum mode_t {
   WP_TRIGGER,
 };
 
+/**
+ * The control state structure.
+ */
 struct state {
   /* the current mode the state is in. */
   enum mode_t mode;

@@ -2,6 +2,7 @@
 #define WATER_PEN_LOGIC_CALIBRATION_H
 
 #include "types/calibration_types.h"
+#include "driver/adc.h"
 #include <stdint.h>
 
 /**
@@ -11,9 +12,10 @@
  * between air and water measureing.
  *
  * @param[in] led_pin The LED pin to notify the user of changing state.
+ * @param[in] soil_channel The ADC channel the soil sensor is on.
  * @return Calibration info, water and air threshold values.
  */
-struct calibration_info calibrate_soil_sensor(const uint8_t led_pin);
+struct calibration_info calibrate_soil_sensor(uint8_t led_pin, enum adc_input_channel soil_channel);
 
 /**
  * Get the percentage of the target value given the calibration info.
