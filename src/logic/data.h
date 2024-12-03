@@ -21,4 +21,12 @@ void data_save_calibration_info(const struct calibration_info *info);
  */
 bool data_read_calibration_info(struct calibration_info *info);
 
+/**
+ * Check if the values in the given calibration info structure are the default values.
+ *
+ * @param[in] info The calibration info.
+ * @return True if they are the default values, false otherwise.
+ */
+bool data_are_default_values(struct calibration_info *info);
+
 #endif

@@ -39,3 +39,7 @@ bool data_read_calibration_info(struct calibration_info *info) {
   // Since we are grabbing a uint16_t from the EEPROM we need to check for 0xFFFF
   return info->air_threshold != 0xFFFF && info->water_threshold != 0xFFFF;
 }
+
+bool data_are_default_values(struct calibration_info *info) {
+  return info->air_threshold == 0xFFFF || info->water_threshold == 0xFFFF;
+}

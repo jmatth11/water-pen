@@ -20,7 +20,7 @@ MCU=attiny85
 # TARGET_PLATFORM=m328p
 # for attiny85
 TARGET_PLATFORM=t85
-USB_PORT=usb:001:006
+USB_PORT=usb:001:007
 LD_FLAGS=-DF_CPU=$(CLOCK_FREQ)
 
 # Remove section when generating file
