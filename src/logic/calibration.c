@@ -16,13 +16,13 @@ static uint16_t average(uint8_t cap) {
 struct calibration_info calibrate_soil_sensor(uint8_t led_pin) {
   struct calibration_info result;
   PORTB |= _BV(led_pin);
-  _delay_ms(2000);
+  _delay_ms(3000);
   PORTB &= ~_BV(led_pin);
 
   result.air_threshold = average(5);
 
   PORTB |= _BV(led_pin);
-  _delay_ms(2000);
+  _delay_ms(3000);
   PORTB &= ~_BV(led_pin);
 
   result.water_threshold = average(5);

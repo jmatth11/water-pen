@@ -3,10 +3,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <util/delay.h>
 #include <util/atomic.h>
-#include <string.h>
 
 #include "avr/wdt.h"
 #include "components/soil_sensor.h"
@@ -19,56 +17,57 @@
 #include "logic/setup.h"
 #include "logic/state.h"
 
-#define LED_PIN PB3
+#ifdef DEBUG_MODE
+#include "helpers/print.h"
+#endif
 
-// DEBUG FUNCTIONS
-static void error_loop() {
-  PORTB |= _BV(PB3);
-  while(1) {
-
-  }
-}
-static void print(char* str) {
-  const uint32_t len = strlen(str);
-  if (!i2c_start()) {
-    error_loop();
-  }
-  if (i2c_write_address(4, true) & 0x01) error_loop();
-  for (int i = 0; i < len; ++i) {
-    if (i2c_write_byte(str[i]) & 0x01) error_loop();
-  }
-  i2c_stop();
-}
-static void print_int(uint16_t val) {
-  char buf[5] = {0,0,0,0,0};
-  sprintf(buf, "%u", val);
-  print(buf);
-}
+#define ERROR_LED PB3
+// right now it is the same as error, once using rgb led it will change
+#define CAL_LED PB3
+// flags for custom interrupt mask
+/* To signal an interrupt for calibration */
+#define I_CAL 0
+/* To signal an interrupt from a wakeup */
+#define I_WAKE 1
+/**
+ * Set bit to 0 to signal a handle event, set to 1 for the handler to
+ * accept new handle requests.
+ */
+#define I_HANDLE 2
+// volatile shared mask between interrupts and main thread
+static volatile uint8_t interrupt_mask = 0;
 
 
 // globals
 static struct state control_state;
-// needs to be volatile to share between interrupts and main
-static volatile uint8_t calibrate = 0;
-static volatile uint8_t wake = 0;
 
-static void handle_interrupt_values(struct state* control_state) {
+static void handle_interrupt_values(struct state* state) {
+#ifdef DEBUG_MODE
+  print("handler");
+  print_int(interrupt_mask);
+#endif
+  // if the handle flag is set it means no request has come in
+  if (interrupt_mask & _BV(I_HANDLE)) {
+    return;
+  }
   // create an atomic block for these operations
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    if (calibrate) {
+    if (interrupt_mask & _BV(I_CAL)) {
       // turn off LED if it was on
-      disable_trigger_state(control_state, LED_PIN);
-      // set wakeup count to the max so it reads the next time we wake.
-      control_state->wakeup_count = WAKEUP_LIMIT;
-      control_state->mode = WP_CALIBRATE;
-      calibrate = 0;
+      disable_trigger_state(state, ERROR_LED);
+      state->mode = WP_CALIBRATE;
+      // we don't clear the I_CAL bit in here we wait until the calibration is done.
+      // this gives enough time for extra interrupts from the button to finish out
+    } else if (interrupt_mask & _BV(I_WAKE)) {
+      wakeup_operations(state);
     }
-
-    if (wake) {
-      wakeup_operations(control_state);
-    }
+    // signal interrupt handler can accept requests again by reseting mask
+    interrupt_mask = _BV(I_HANDLE);
   }
+#ifdef DEBUG_MODE
+  print_int(interrupt_mask);
+#endif
 }
 
 
@@ -81,7 +80,9 @@ int main (void) {
   // enable interrupts again.
   sei();
 
-  setup_led(LED_PIN);
+  setup_led(ERROR_LED);
+  // TODO uncomment when using rgb led
+  //setup_led(CAL_LED);
   adc_init();
 
   // start off with at least one sleep
@@ -96,6 +97,8 @@ int main (void) {
 
   i2c_init(true);
 
+  // set interrupt_mask to default value
+  interrupt_mask = _BV(I_HANDLE);
   while(1) {
 
     handle_interrupt_values(&control_state);
@@ -105,19 +108,29 @@ int main (void) {
         // wait at least a second in case we are transitioning from error mode
         // to tell the difference between "error" LED and "calibration" LED
         _delay_ms(1000);
+#ifdef DEBUG_MODE
         print("cal");
-        control_state.calibration_info = calibrate_soil_sensor(LED_PIN);
+#endif
+        control_state.calibration_info = calibrate_soil_sensor(CAL_LED);
 
-        print_int(control_state.calibration_info.air_threshold);
-        print_int(control_state.calibration_info.water_threshold);
 
         data_save_calibration_info(&control_state.calibration_info);
+#ifdef DEBUG_MODE
+        print_int(control_state.calibration_info.air_threshold);
+        print_int(control_state.calibration_info.water_threshold);
         print("saved");
+#endif
+        // set wakeup count to the max so it reads the next time we wake.
+        control_state.wakeup_count = WAKEUP_LIMIT;
         control_state.mode = WP_SLEEP;
+        // safe to finally clear bit here
+        interrupt_mask &= ~_BV(I_CAL);
         break;
       }
       case WP_READ: {
+#ifdef DEBUG_MODE
         print("read");
+#endif
         // if the values are default we want to trigger the error state
         // to tell the user to calibrate
         if (data_are_default_values(&control_state.calibration_info)) {
@@ -125,19 +138,24 @@ int main (void) {
           break;
         }
         uint16_t result = soil_sensor_read();
-        print_int(result);
         uint8_t percentage = percentage_from_value(
           result, &control_state.calibration_info);
+#ifdef DEBUG_MODE
+        print_int(result);
         print_int(percentage);
+#endif
         // TODO pull potentiometer data to check if value is
         // below percentage threshold.
         //
+        control_state.error_triggered = false;
         control_state.mode = WP_SLEEP;
         break;
       }
       case WP_TRIGGER: {
+#ifdef DEBUG_MODE
         print("trigger");
-        enable_trigger_state(&control_state, LED_PIN);
+#endif
+        enable_trigger_state(&control_state, ERROR_LED);
         // go to sleep -- the LED should stay on during power down
         control_state.mode = WP_SLEEP;
         // reset wakeup_count
@@ -145,13 +163,14 @@ int main (void) {
         break;
       }
       case WP_SLEEP: {
+#ifdef DEBUG_MODE
         print("sleep");
         print_int(control_state.calibration_info.air_threshold);
         print_int(control_state.calibration_info.water_threshold);
+        print_int(control_state.wakeup_count);
+#endif
         // sleep for longest time -- 8sec
-        //wd_sleep(WDTO_8S);
-        _delay_ms(5000);
-        control_state.mode = WP_READ;
+        wd_sleep(WDTO_8S);
         break;
       }
     }
@@ -165,8 +184,10 @@ int main (void) {
  */
 ISR(PCINT0_vect)
 {
-  calibrate = 1;
-  print("button");
+  if (interrupt_mask & _BV(I_HANDLE)) {
+    interrupt_mask &= ~_BV(I_HANDLE);
+    interrupt_mask |= _BV(I_CAL);
+  }
 }
 
 /**
@@ -174,7 +195,9 @@ ISR(PCINT0_vect)
  */
 ISR(WDT_vect)
 {
-  wake = 1;
-  print("wakeup");
+  if (interrupt_mask & _BV(I_HANDLE)) {
+    interrupt_mask &= ~_BV(I_HANDLE);
+    interrupt_mask |= _BV(I_WAKE);
+  }
 }
 
