@@ -1,13 +1,49 @@
-# AVR Setup
+# Water Pen
 
-This project is to have a base project that explains the setup process to develop for AVR chips.
+This is a simple program for the ATtiny85 microcontroller to monitor
+potted plants. The form factor is meant to be small, like a pen.
+
+## How it works
+
+The device is first calibrated by pressing the button for the device.
+Position the soil sensor in the dry air, the calibration LED (green LED) will
+display for 3 seconds, then it will take an average of the air samples. The
+calibration light will display again for 3 seconds, move the soil sensor to
+a cup of water. Once the calibration LED is off it will take the average of
+the water samples. The calibration LED will do a quick flash at the end to let
+you know it is done.
+
+After the device has been calibrated turn the potentiometer to the desired
+threshold percentage of when the Alert LED (red LED) should turn on to signify
+the plant needs to be watered.
+
+Place the device in the potted plant. From here, the device reads the soil
+moisture once every hour.
+
+The device puts itself into sleep mode during this hour to save on battery life.
+Need to figure out projected battery life, but shooting for at least 6 months.
+
+## Hardware
+
+This section is still in TODO.
+
+Plans so far:
+- ATtiny85
+- Capacitive Soil Moisture Sensor
+- Potentiometer
+- Button
+- RGB LED
+- Battery is CR2032
+- Step up voltage converter
+- Small PCB design
+- 3D printed case
 
 ## Project Structure
 
-- main.c The blink project
-- install_deps.sh Run this to install all the tools needed to build and flash AVR projects.
-- Makefile Contains commands to build and burn the AVR project.
-- compile_flags.txt Contains setup flags to work with the C LSP (clangd)
+- `src` The source code for the project.
+- `install_deps.sh` Run this to install all the tools needed to build and flash AVR projects.
+- `Makefile` Contains commands to build and burn the AVR project.
+- `compile_flags.txt` Contains setup flags to work with the C LSP (clangd)
 
 ## USBTiny
 
