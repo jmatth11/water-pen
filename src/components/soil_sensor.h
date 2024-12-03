@@ -1,7 +1,6 @@
 #ifndef WATER_PEN_SOIl_SENSOR_H
 #define WATER_PEN_SOIl_SENSOR_H
 
-#include <avr/io.h>
 #include <stdint.h>
 
 /**

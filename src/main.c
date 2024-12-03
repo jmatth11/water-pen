@@ -8,8 +8,8 @@
 
 #include "avr/wdt.h"
 #include "components/soil_sensor.h"
+#include "components/potentiometer.h"
 #include "driver/adc.h"
-#include "driver/i2c.h"
 #include "driver/slp.h"
 #include "logic/calibration.h"
 #include "logic/data.h"
@@ -18,6 +18,7 @@
 #include "logic/state.h"
 
 #ifdef DEBUG_MODE
+#include "driver/i2c.h"
 #include "helpers/print.h"
 #endif
 
@@ -95,7 +96,9 @@ int main (void) {
     control_state.mode = WP_TRIGGER;
   }
 
+#ifdef DEBUG_MODE
   i2c_init(true);
+#endif
 
   // set interrupt_mask to default value
   interrupt_mask = _BV(I_HANDLE);
@@ -105,15 +108,13 @@ int main (void) {
 
     switch (control_state.mode) {
       case WP_CALIBRATE: {
-        // wait at least a second in case we are transitioning from error mode
-        // to tell the difference between "error" LED and "calibration" LED
-        _delay_ms(1000);
 #ifdef DEBUG_MODE
         print("cal");
 #endif
+        // wait at least a second in case we are transitioning from error mode
+        // to tell the difference between "error" LED and "calibration" LED
+        _delay_ms(1000);
         control_state.calibration_info = calibrate_soil_sensor(CAL_LED);
-
-
         data_save_calibration_info(&control_state.calibration_info);
 #ifdef DEBUG_MODE
         print_int(control_state.calibration_info.air_threshold);
@@ -140,15 +141,18 @@ int main (void) {
         uint16_t result = soil_sensor_read();
         uint8_t percentage = percentage_from_value(
           result, &control_state.calibration_info);
+        uint16_t threshold = potentiometer_sensor_read();
+        control_state.error_triggered = percentage <= threshold;
+        if (control_state.error_triggered) {
+          control_state.mode = WP_TRIGGER;
+        } else {
+          control_state.mode = WP_SLEEP;
+        }
 #ifdef DEBUG_MODE
         print_int(result);
         print_int(percentage);
+        print_int(threshold);
 #endif
-        // TODO pull potentiometer data to check if value is
-        // below percentage threshold.
-        //
-        control_state.error_triggered = false;
-        control_state.mode = WP_SLEEP;
         break;
       }
       case WP_TRIGGER: {

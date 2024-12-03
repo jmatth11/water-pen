@@ -1,4 +1,5 @@
 #include "soil_sensor.h"
+#include <avr/io.h>
 #include "driver/adc.h"
 
 uint16_t soil_sensor_read() {

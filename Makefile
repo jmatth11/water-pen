@@ -1,5 +1,5 @@
 CC=avr-gcc
-SOURCES=$(shell find . -name '*.c' | grep -v 'print')
+SOURCES=$(shell find . -name '*.c' | grep -v 'print' | grep -v 'i2c')
 DEBUG_SRC=$(shell find . -name '*.c')
 INCLUDES=-I./src/
 OBJ=obj
