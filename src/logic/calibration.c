@@ -1,4 +1,5 @@
 #include "calibration.h"
+#include <avr/io.h>
 #include "components/soil_sensor.h"
 #include "helpers/math.h"
 #include "util/delay.h"
