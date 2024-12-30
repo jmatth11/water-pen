@@ -4,7 +4,7 @@ static void enable_inputs(enum adc_input_channel input) {
   ADMUX = (
     // set refs to (0,0,0) to use Vcc as Voltage Reference
     (0 << REFS1) | (0 << REFS0) | (0 << REFS2) |
-    // Set 0 to read bits 9 and 8 in ADCH and the rest in ADCL
+    // Set 0 to read bit offset 9 and 8 in ADCH and the rest (0-7) in ADCL
     (0 << ADLAR) |
     // set the bottom 4 bits to configure PBx as ADC input
     (0b00001111 & input)
