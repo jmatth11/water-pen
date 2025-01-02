@@ -173,11 +173,15 @@ int main (void) {
         uint8_t percentage = percentage_from_value(
           result, &control_state.calibration_info);
         uint16_t threshold = potentiometer_sensor_read(POTENTIOMETER);
-        control_state.error_triggered = percentage <= threshold;
-        if (control_state.error_triggered) {
+        bool triggered = percentage <= threshold;
+        if (triggered) {
           control_state.mode = WP_TRIGGER;
         } else {
           control_state.mode = WP_SLEEP;
+          // if we detect more moisture disable the error state.
+          if (control_state.error_triggered) {
+            disable_trigger_state(&control_state, ERROR_LED);
+          }
         }
 #ifdef DEBUG_MODE
         print_int(result);
@@ -203,9 +207,12 @@ int main (void) {
         print_int(control_state.calibration_info.air_threshold);
         print_int(control_state.calibration_info.water_threshold);
         print_int(control_state.wakeup_count);
-#endif
+        _delay_ms(1000);
+        control_state.mode = WP_READ;
+#else
         // sleep for longest time -- 8sec
         wd_sleep(WDTO_8S);
+#endif
         break;
       }
     }

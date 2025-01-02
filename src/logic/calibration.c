@@ -10,7 +10,7 @@ static uint16_t average(enum adc_input_channel soil_channel, uint8_t cap) {
   uint32_t sum = 0;
   for (int i = 0; i < cap; ++i) {
     sum += soil_sensor_read(soil_channel);
-    _delay_ms(200);
+    _delay_ms(500);
   }
   return sum/cap;
 }

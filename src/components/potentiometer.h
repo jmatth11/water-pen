@@ -6,6 +6,7 @@
 
 /**
  * Read the potentiometer sensor value on the given channel.
+ * This function maps the value between 0-100.
  *
  * @param[in] channel The ADC channel.
  * \reference ADC_SE-

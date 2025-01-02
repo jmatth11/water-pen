@@ -5,7 +5,7 @@
  * Setup the LED pin output
  */
 void setup_led(uint8_t pin) {
-  // set pin 3 as output
+  // set incoming pin as output
   DDRB |= _BV(pin);
   PORTB &= ~_BV(pin);
 }
@@ -24,7 +24,7 @@ void setup_global_interrupt_flags() {
  * Setup a button to be an interrupt on a given pin.
  */
 void setup_button_interrupt(uint8_t pin) {
-  // enable interrupt handler for PCINT1 (or PB1)
+  // enable interrupt handler for for incoming pin (which is PCINT1 (or PB1))
   PCMSK |= _BV(pin);
   // set pin interrupt to trigger on rising edge
   MCUCR |= (
